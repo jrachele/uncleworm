@@ -7,12 +7,8 @@
 #include "apples.h"
 
 enum Levels {
-  GAME_OVER,
-  INTRO,
-  LEVEL1,
-  LEVEL2,
-  LEVEL3,
-  LEVEL4,
+  GAME_OVER = -1,
+  INTRO = 0,
 };
 
 
@@ -26,53 +22,47 @@ class Level {
   virtual std::string subtitle() {return "";};
 };
 
-
-class L1 : public Level {
+class Gameplay : public Level {
  public:
-  std::vector<Apple> apples() override {
-    return Apple::from_vec(
-        {
-            {0, 10, 0, 5},
-            {10, 0, 0, 5},
-            {0, 0, 10, 0},
-            {0, 10, 0, 0}
-        }
-    );
+  Gameplay(int number, int num_apples = 0) : number_(number), num_apples_(num_apples) {
+    if (num_apples == 0) {
+      num_apples_ = 5 + number;
+    }
   }
-   int number() {
-     return LEVEL1;
-   };
+
+  std::vector<Apple> apples() override {
+    int thickness = number() * 5 + 20;
+    return Apple::from_target(num_apples_, thickness);
+  }
+
+  int number() override {
+    return number_;
+  }
+
+ private:
+  int number_;
+  int num_apples_;
 };
 
-class L2 : public Level {
- public:
-  std::vector<Apple> apples() override {
-    return Apple::from_vec(
-        {
-            {5, 5, 0, 5, 2, 0, 0, 0},
-            {10, 0, 0, 10, 0, 0, 0, 0},
-            {0, 0, 10, 0, 5, 0, 5, 0},
-            {0, 10, 0, 0, 0, 0, 0, 0},
-            {10, 0, 0, 10, 0, 0, 0, 0},
-            {0, 0, 10, 0, 5, 0, 5, 0},
-            {0, 0, 10, 0, 5, 0, 5, 0},
-            {0, 10, 0, 0, 0, 0, 0, 0}
-        }
-    );
-  }
-  int number() {
-    return LEVEL1;
-  };
-};
 
 class GameOver : public Level {
-  int number() {
+ public:
+  GameOver(int score, int level) : score(score), level(level) {}
+  int number() override {
     return GAME_OVER;
   }
 
-  std::string title() { return "GAME OVER :(";}
+  std::string title() override { return "GAME OVER :(";}
 
-  std::string subtitle() { return "Time go ni night";}
+  std::string subtitle() override {
+    if (score > 0) {
+      return "Level: " + std::to_string(level) + " Score: " + std::to_string(score);
+    }
+    return "Time go ni night";
+  }
+ private:
+  int score;
+  int level;
 };
 
 class Intro : public Level {
@@ -88,15 +78,11 @@ class Intro : public Level {
 static Level* fromInt(int lvl) {
   switch (lvl) {
     case GAME_OVER:
-      return new GameOver();
+      return new GameOver(0, 1);
     case INTRO:
       return new Intro();
-    case LEVEL1:
-      return new L1();
-    case LEVEL2:
-      return new L2();
     default:
-      return new Intro();
+      return new Gameplay(lvl);
   }
 }
 #endif //UNCLEWORM__LEVEL_H_

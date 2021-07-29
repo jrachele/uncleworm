@@ -7,6 +7,7 @@
 
 static const int WIDTH = 1280;
 static const int HEIGHT = 1280;
+static const int THICKNESS = 20;
 sf::Color screen(156, 166, 137);
 
 #endif //UNCLEWORM__GLOBAL_H_

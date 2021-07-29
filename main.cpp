@@ -37,7 +37,7 @@ int main() {
         {
           if (event.key.code == sf::Keyboard::Space) {
             if (state.get_current_level()->number() == INTRO) {
-              Level *l1 = new L1();
+              Level *l1 = new Gameplay(1, 5);
               state.change_level(l1);
             }
             if (state.get_current_level()->number() == GAME_OVER) {

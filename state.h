@@ -31,10 +31,10 @@
   }
   void check_state() {
     bool worm_ate_itself = worm->check_died();
-    bool worm_oob = !worm->collided(wall->getGlobalBounds());
+    bool worm_oob = !worm->has_collided(wall->getGlobalBounds());
 
     // edge case for when crossing gate
-    if (gate && lvl_complete && worm->collided(gate->getGlobalBounds())) {
+    if (gate && lvl_complete && worm->has_collided(gate->getGlobalBounds())) {
       worm_oob = false;
     }
 
@@ -43,14 +43,14 @@
       sf::RectangleShape portal(*gate);
       auto [w, h] = portal.getSize();
       portal.setSize({w, 20});
-      if (worm->collided(portal.getGlobalBounds())) {
+      if (worm->has_collided(portal.getGlobalBounds())) {
         // change levels
         change_level(fromInt(current_level->number() + 1));
       }
     }
 
     if (worm_ate_itself || worm_oob) {
-      change_level(new GameOver());
+      change_level(new GameOver(score, current_level->number()));
     }
   }
 
@@ -68,7 +68,7 @@
      lvl_complete = false;
      apples = new std::vector<Apple>(current_level->apples());
      worm = new Worm(8);
-     float thickness = l->number() * 5 + 20;
+     float thickness = l->number() * THICKNESS + 10;
      wall = new sf::RectangleShape({WIDTH - 2*thickness, HEIGHT - 2*thickness});
      wall->setFillColor(screen);
      wall->setOrigin(WIDTH/2 - thickness, HEIGHT/2 - thickness);
@@ -85,13 +85,14 @@
    void update() {
      if (apples && worm) {
        worm->update();
-       for (size_t i = 0; i < apples->size(); i++) {
-         auto& apple = apples->at(i);
+       if (!apples->empty()) {
+         auto& apple = apples->at(0);
          if (worm->getGlobalBounds().intersects(apple.getGlobalBounds())) {
-           worm->grow(apple.getSize());
+           worm->grow(apple.getSize()*apple.getSize());
            score += apple.getSize();
-           apples->erase(apples->begin() + i);
+           apples->erase(apples->begin());
          }
+
        }
        if (apples->empty()) {
          // open the gate
@@ -119,9 +120,6 @@
       sf::Text subtitle;
       subtitle.setFont(font);
       std::string s = current_level->subtitle();
-      if (score > 0) {
-        s = "Final Score: " + std::to_string(score);
-      }
       unsigned int characterSize = 75;
       subtitle.setString(s);
       subtitle.setCharacterSize(characterSize);
@@ -139,7 +137,7 @@
         target.draw(bg);
         target.draw(*wall);
 
-        float thickness = current_level->number() * 5 + 20;
+        float thickness = current_level->number() * THICKNESS + 10;
 
         // draw the gate if it exists
         if (lvl_complete && gate) {
@@ -150,9 +148,9 @@
         sf::Text t;
         t.setFillColor(screen);
         t.setFont(font);
-        t.setString("Level: " + std::to_string(current_level->number()-1));
+        t.setString("Level: " + std::to_string(current_level->number()));
         t.setCharacterSize(24);
-        t.setPosition(thickness, 0);
+        t.setPosition(24, 0);
         target.draw(t);
 
         sf::Text s;
@@ -166,9 +164,12 @@
       }
 
       if (apples) {
-        for (auto& apple: *apples) {
-          target.draw(apple);
+        if (!apples->empty()) {
+          target.draw((*apples)[0]);
         }
+//        for (auto& apple: *apples) {
+//          target.draw(apple);
+//        }
       }
       if (worm) {
         target.draw(*worm);

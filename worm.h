@@ -46,7 +46,7 @@ class Worm : public sf::Drawable {
     growing_ += growth;
   }
 
-  bool collided(const sf::FloatRect& other) {
+  bool has_collided(const sf::FloatRect& other) {
     auto head = generate_shape(segments_.back(), segment_size_);
     return head.getGlobalBounds().intersects(other);
   }
